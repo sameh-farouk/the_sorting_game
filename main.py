@@ -25,10 +25,28 @@ def gameover():
     messagebox.showinfo("Sorry!", f"we got a loser!")
     mainWindow.destroy()
 
+class HoverButton(Button):
+    # on windows os, activebackground and activeforeground options only seem to work when you are clicking on the button rather than when you hover over the button.
+    # so we use the <Leave> and <Enter> events instead in this custom button class as a workaround to work equally well on both linux and windows
+    def __init__(self, master, **kw):
+        Button.__init__(self,master=master,**kw)
+        self.bind("<Enter>", self.on_enter)
+        self.bind("<Leave>", self.on_leave)
+
+    def on_enter(self, e):
+        self.defaultBackground = self['background']
+        self.defaultforeground = self['foreground']
+        self['background'] = self['activebackground']
+        self['foreground'] = self['activeforeground']
+
+    def on_leave(self, e):
+        self['background'] = self.defaultBackground
+        self['foreground'] = self.defaultforeground
+
 def show_help(*_):
+    mainWindow.unbind('<Enter>')
     messagebox.showinfo("Help", 
     "The Rules:\n1- Press the visible number to start the game\n2- Hover over the blocks to discover the numbers\n3- Press the numbers in ascending order to won\n4- You should clear all blocks before you ran out of time or lives\n5- share a screen shot with your time if you can win :D")
-    mainWindow.unbind('<Enter>')
 
 def update_remain_time(*_):
     global timer_id
@@ -67,7 +85,7 @@ def create_game_gui():
     index = 0
     for x in range(ROWS):
         for y in range(COLUMNS):
-            button = Button(mainWindow, text=str(number_list[index]), width=5)
+            button = HoverButton(mainWindow, text=str(number_list[index]), width=5, height=1)
             if not number_list[index] == sorted_list[-1]:
                 button.config(activeforeground='white', activebackground='white', fg='grey', bg='grey')
             button.config(font=NUMBER_FONT_TUPLE)
@@ -81,7 +99,7 @@ def create_game_gui():
     label2 = Label(mainWindow, textvariable=remain_time, font=TIME_FONT_TUPLE)
     label2.grid(row=ROWS, column=1, pady=10, sticky='w')
 
-    label3 = Label(mainWindow, textvariable=lives, font=NUMBER_FONT_TUPLE, fg='red')
+    label3 = Label(mainWindow, textvariable=lives, font=TIME_FONT_TUPLE, fg='red')
     label3.grid(row=ROWS, column=COLUMNS-1, pady=10)
 
     for button in buttons:
